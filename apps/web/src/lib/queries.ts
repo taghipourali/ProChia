@@ -13,7 +13,7 @@ import type {
   SubscriptionDto,
   WalletDto,
 } from '@prochia/shared';
-import { api } from './api';
+import { api, API_BASE } from './api';
 import { branchHeader } from './branch';
 
 export const keys = {
@@ -79,7 +79,7 @@ export function useLiveOrder(id: string) {
     // EventSource cannot send headers; in development the branch goes in the query string.
     const branch = branchHeader()['x-branch'];
     const source = new EventSource(
-      `/api/v1/orders/${id}/stream${branch ? `?branch=${branch}` : ''}`,
+      `${API_BASE}/api/v1/orders/${id}/stream${branch ? `?branch=${branch}` : ''}`,
       { withCredentials: true },
     );
     const refresh = () => void client.invalidateQueries({ queryKey: keys.order(id) });

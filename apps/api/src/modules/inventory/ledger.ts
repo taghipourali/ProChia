@@ -1,7 +1,8 @@
 import { and, asc, eq, inArray, sql } from 'drizzle-orm';
 import type { StockReason } from '@prochia/shared';
 import { formatNumber, UNIT_LABELS } from '@prochia/shared';
-import { gather, type Executor, type Tx } from '../../db/client';
+import type { Executor, Tx } from '../../db/client';
+import { gather } from '../../db/gather';
 import { ingredients, orderLines, orders, stockMovements } from '../../db/schema';
 import { conflict } from '../../lib/errors';
 import { lineRequirements, type Catalog, type Requirements } from '../menu/catalog';

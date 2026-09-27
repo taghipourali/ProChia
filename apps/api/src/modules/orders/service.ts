@@ -2,7 +2,8 @@ import { and, desc, eq, gte, inArray, lte, ne, notInArray, or, sql } from 'drizz
 import type { CartInput, CheckoutInput, OrderStatus } from '@prochia/shared';
 import { formatToman, tehranIsoDate, toFaDigits } from '@prochia/shared';
 import type { AppContext } from '../../context';
-import { gather, type Executor, type Tx } from '../../db/client';
+import type { Executor, Tx } from '../../db/client';
+import { gather } from '../../db/gather';
 import {
   branches,
   creditRedemptions,

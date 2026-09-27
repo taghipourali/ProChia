@@ -14,7 +14,8 @@ import {
 } from 'drizzle-orm';
 import type { Goal } from '@prochia/shared';
 import { addDaysIso, tehranIsoDate } from '@prochia/shared';
-import { gather, type Executor, type Tx } from '../../db/client';
+import type { Executor, Tx } from '../../db/client';
+import { gather } from '../../db/gather';
 import {
   healthProfiles,
   memberCodes,

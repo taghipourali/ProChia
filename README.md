@@ -18,6 +18,7 @@ Persian, right-to-left and built for Iranian infrastructure (Zarinpal, Kavenegar
 | `apps/panel`      | Restaurant, café, storage, cashier, managers | Live order board, stock and processing, menu and recipes, members, club and promotions, packages, SMS, reports, settings                       |
 | `apps/desktop`    | Same staff, on Windows PCs                   | The panel as a native Windows app (Tauri): installer, native notifications, single instance                                                    |
 | `apps/api`        | Both apps                                    | Fastify + PostgreSQL. Orders, inventory, payments, wallet, plans, club, SMS, scheduler, analytics                                              |
+| `apps/demo`       | Clients, before launch                       | Static demo for GitHub Pages: both apps plus the real API routes and services running in the browser on PGlite                                 |
 | `packages/shared` | Everything                                   | Persian formatting, Jalali calendar, nutrition math, enums, request schemas, API types                                                         |
 | `packages/ui`     | Both front-ends                              | Design tokens, self-hosted Estedad font, icons, nutrition label, sheets, toasts                                                                |
 
@@ -55,13 +56,20 @@ The development payment gateway is a fake bank page with "success / cancel" butt
 
 ```bash
 createdb prochia_test
-pnpm test        # shared utilities + API (pricing, suggestions, full order flows on real Postgres, HTTP)
+pnpm test        # shared utilities + API (pricing, suggestions, full order flows on real Postgres, HTTP) + demo smoke test
 pnpm typecheck
+TEST_DB_DRIVER=pglite pnpm --filter @prochia/api test   # the API suite without a Postgres server
 ```
 
 ## Windows app
 
 `pnpm dev:desktop` runs it locally on Windows. Installers (`.exe`, `.msi`) are built by the **Windows app** GitHub Action (run it from the Actions tab or push a `desktop-v*` tag). On first launch the app asks for the server address, e.g. `https://panel.prochia.ir`.
+
+## Demo for clients
+
+`pnpm build:demo` builds `apps/demo/dist`: a landing page with the member app in a phone frame beside the staff panel, all working with no server. A service worker answers `/api` in the browser by running the unchanged API routes and services on [PGlite](https://pglite.dev) (Postgres compiled to WebAssembly), starting from the seed's three weeks of history moved to today. Orders placed in the member app reach the kitchen board live; everything a visitor does stays in their browser, and “بازنشانی داده‌ها” restores the sample data.
+
+The **Demo** GitHub Action publishes it to GitHub Pages on every push to the default branch (one-time: Settings → Pages → Source: GitHub Actions). Serve `dist/` from any static host to show it elsewhere.
 
 ## Deploying
 

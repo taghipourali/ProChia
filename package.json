@@ -13,7 +13,8 @@
     "db:seed": "pnpm --filter @prochia/api db:seed",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
-    "build": "pnpm -r --filter '!@prochia/desktop' build",
+    "build": "pnpm -r --filter '!@prochia/desktop' --filter '!@prochia/demo' build",
+    "build:demo": "pnpm --filter @prochia/demo build",
     "format": "prettier --write .",
     "dev:desktop": "pnpm --filter @prochia/desktop dev"
   },

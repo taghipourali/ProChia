@@ -1,3 +1,5 @@
+import { demoApiBase } from '@prochia/demo/client';
+
 /**
  * Staff session and connection settings, kept in local storage. In the browser the panel talks
  * to the API on its own origin; the Windows app stores the server address chosen at first run.
@@ -28,9 +30,12 @@ function write(key: string, value: string | null) {
 /** True inside the Tauri desktop shell. */
 export const isDesktop = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
 
+/** In the static demo the API runs in a service worker under the demo's root. */
+const WEB_API_BASE: string = import.meta.env.VITE_DEMO ? demoApiBase() : '';
+
 export const session = {
   get server() {
-    return read(KEYS.server) ?? (isDesktop ? null : '');
+    return read(KEYS.server) ?? (isDesktop ? null : WEB_API_BASE);
   },
   set server(value: string | null) {
     write(KEYS.server, value?.replace(/\/+$/, '') ?? null);

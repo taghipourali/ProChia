@@ -1,4 +1,5 @@
 import type { AnalyticsEvent } from '@prochia/shared';
+import { API_BASE } from './api';
 import { branchHeader } from './branch';
 import { storage } from './storage';
 
@@ -25,7 +26,7 @@ export function track(name: AnalyticsEvent, props?: Props) {
 function flush() {
   if (!queue.length) return;
   const events = queue.splice(0, 50);
-  void fetch('/api/v1/events', {
+  void fetch(`${API_BASE}/api/v1/events`, {
     method: 'POST',
     credentials: 'include',
     keepalive: true,

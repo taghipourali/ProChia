@@ -3,7 +3,7 @@ import { buildApp } from './app';
 import type { AppContext } from './context';
 import { createDb } from './db/client';
 import { runMigrations } from './db/migrate';
-import { Scheduler } from './jobs/scheduler';
+import { advisoryLock, Scheduler } from './jobs/scheduler';
 import { EventBus } from './lib/bus';
 import { createSmsProvider } from './modules/notifications/providers';
 import { createGateway } from './modules/payments/gateways';
@@ -33,7 +33,7 @@ const ctx: AppContext = {
 };
 
 const app = await buildApp(ctx, { logger });
-const scheduler = new Scheduler(ctx, pool, app.log);
+const scheduler = new Scheduler(ctx, advisoryLock(pool, app.log), app.log);
 if (config.RUN_SCHEDULER) scheduler.start();
 
 await app.listen({ port: config.PORT, host: config.HOST });

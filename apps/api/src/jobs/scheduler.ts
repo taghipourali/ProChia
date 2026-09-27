@@ -33,21 +33,56 @@ const DAILY: { name: string; afterHour: number; run: (ctx: AppContext) => Promis
   { name: 'tiers', afterHour: 4, run: refreshAllTiers },
 ];
 
+/** Decides which process runs the jobs. */
+export interface Leadership {
+  acquire(): Promise<boolean>;
+  release(): Promise<void>;
+}
+
 /**
- * Background work. Only one API process runs it: the first to take a Postgres advisory lock.
- * Others keep trying, so a replacement takes over if the leader dies.
+ * Only one API process runs the jobs: the first to take a Postgres advisory lock. Others keep
+ * trying, so a replacement takes over if the leader dies.
  */
+export function advisoryLock(
+  pool: Pool,
+  log: { info: (m: string) => void } = { info: () => {} },
+): Leadership {
+  let client: PoolClient | null = null;
+  return {
+    async acquire() {
+      if (client) return true;
+      const c = await pool.connect();
+      const { rows } = await c.query<{ ok: boolean }>('select pg_try_advisory_lock($1) as ok', [
+        LOCK_KEY,
+      ]);
+      if (rows[0]?.ok) {
+        client = c;
+        log.info('scheduler: acquired leadership');
+        return true;
+      }
+      c.release();
+      return false;
+    },
+    async release() {
+      if (!client) return;
+      await client.query('select pg_advisory_unlock($1)', [LOCK_KEY]).catch(() => {});
+      client.release();
+      client = null;
+    },
+  };
+}
+
+/** Background work, run by whichever process holds the leadership. */
 export class Scheduler {
-  private timers: NodeJS.Timeout[] = [];
-  private lockClient: PoolClient | null = null;
+  private timers: ReturnType<typeof setInterval>[] = [];
   private readonly lastRun = new Map<string, number>();
   private readonly lastDaily = new Map<string, string>();
   private running = new Set<string>();
 
   constructor(
     private readonly ctx: AppContext,
-    private readonly pool: Pool,
-    private readonly log: { info: (m: string) => void; error: (o: unknown, m?: string) => void },
+    private readonly leadership: Leadership,
+    private readonly log: { error: (o: unknown, m?: string) => void },
   ) {}
 
   start() {
@@ -58,31 +93,12 @@ export class Scheduler {
   async stop() {
     for (const t of this.timers) clearInterval(t);
     this.timers = [];
-    if (this.lockClient) {
-      await this.lockClient.query('select pg_advisory_unlock($1)', [LOCK_KEY]).catch(() => {});
-      this.lockClient.release();
-      this.lockClient = null;
-    }
-  }
-
-  private async isLeader(): Promise<boolean> {
-    if (this.lockClient) return true;
-    const client = await this.pool.connect();
-    const { rows } = await client.query<{ ok: boolean }>('select pg_try_advisory_lock($1) as ok', [
-      LOCK_KEY,
-    ]);
-    if (rows[0]?.ok) {
-      this.lockClient = client;
-      this.log.info('scheduler: acquired leadership');
-      return true;
-    }
-    client.release();
-    return false;
+    await this.leadership.release();
   }
 
   private async tick() {
     try {
-      if (!(await this.isLeader())) return;
+      if (!(await this.leadership.acquire())) return;
     } catch (err) {
       this.log.error(err, 'scheduler: leadership check failed');
       return;

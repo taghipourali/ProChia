@@ -1,5 +1,17 @@
 import type { ApiErrorBody } from '@prochia/shared';
+import { demoApiBase } from '@prochia/demo/client';
 import { branchHeader } from './branch';
+
+/**
+ * Prefix for API and upload URLs. Empty on a gym's own domain; in the static demo the API runs in a
+ * service worker under the demo's root.
+ */
+export const API_BASE: string = import.meta.env.VITE_DEMO ? demoApiBase() : '';
+
+/** Upload paths from the API (`/uploads/…`) as loadable URLs. */
+export function assetUrl(url: string) {
+  return url.startsWith('/') ? API_BASE + url : url;
+}
 
 export class ApiError extends Error {
   constructor(
@@ -20,7 +32,7 @@ export async function api<T>(
 ): Promise<T> {
   let res: Response;
   try {
-    res = await fetch(`/api/v1${path}`, {
+    res = await fetch(`${API_BASE}/api/v1${path}`, {
       method: init.method ?? 'GET',
       credentials: 'include',
       headers: {

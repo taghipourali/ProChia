@@ -1,7 +1,8 @@
 import { asc, eq, inArray } from 'drizzle-orm';
 import type { Allergen, ItemTag, Nutrition } from '@prochia/shared';
 import { ZERO_NUTRITION, addNutrition, roundNutrition, scaleNutrition } from '@prochia/shared';
-import { gather, type Executor } from '../../db/client';
+import type { Executor } from '../../db/client';
+import { gather } from '../../db/gather';
 import {
   categories,
   ingredients,

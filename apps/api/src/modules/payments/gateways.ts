@@ -98,12 +98,18 @@ export class FakeGateway implements PaymentGateway {
   async request(req: GatewayRequest) {
     const authority = `FAKE${randomBytes(8).toString('hex').toUpperCase()}`;
     this.pending.set(authority, { amount: req.amount, callbackUrl: req.callbackUrl });
-    const origin = new URL(req.callbackUrl).origin;
-    return { authority, redirectUrl: `${origin}/api/v1/payments/fake-gateway/${authority}` };
+    // The API may be mounted under a path prefix; keep everything before /api/v1.
+    const base = req.callbackUrl.slice(0, req.callbackUrl.indexOf('/api/v1/'));
+    return { authority, redirectUrl: `${base}/api/v1/payments/fake-gateway/${authority}` };
   }
 
   lookup(authority: string) {
     return this.pending.get(authority);
+  }
+
+  /** Re-registers a pending payment after the process that started it was restarted. */
+  remember(authority: string, pending: { amount: number; callbackUrl: string }) {
+    this.pending.set(authority, pending);
   }
 
   async verify(req: { authority: string; amount: number }): Promise<GatewayVerification> {

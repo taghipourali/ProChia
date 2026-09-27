@@ -44,7 +44,10 @@ export function LoginPage() {
       });
       setStep('code');
       setResendIn(res.resendIn);
-      if (res.devCode) toast(`کد آزمایشی: ${toFaDigits(res.devCode)}`);
+      if (res.devCode) {
+        setCode(res.devCode);
+        toast(`کد آزمایشی: ${toFaDigits(res.devCode)}`);
+      }
       window.setTimeout(() => codeInput.current?.focus(), 50);
     } catch (e) {
       if (e instanceof ApiError && e.code === 'otp_wait') {

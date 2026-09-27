@@ -4,6 +4,17 @@ import { errorMessage } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { isDesktop, session } from '../lib/session';
 
+/** Seeded staff accounts, one per role, offered as one-tap logins in the static demo. */
+const DEMO_LOGINS = [
+  ['owner', 'مالک'],
+  ['manager', 'مدیر شعبه'],
+  ['kitchen', 'رستوران'],
+  ['barista', 'کافه'],
+  ['storage', 'انبار'],
+  ['cashier', 'صندوق'],
+] as const;
+const DEMO_PASSWORD = 'prochia1234';
+
 export function LoginScreen() {
   const auth = useAuth();
   const [server, setServer] = useState(session.server ?? '');
@@ -13,12 +24,12 @@ export function LoginScreen() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const submit = async () => {
+  const submit = async (as = { username, password }) => {
     setBusy(true);
     setError(null);
     try {
       if (editingServer) session.server = server.trim();
-      await auth.login(username.trim(), password);
+      await auth.login(as.username.trim(), as.password);
     } catch (e) {
       setError(errorMessage(e));
     } finally {
@@ -77,6 +88,27 @@ export function LoginScreen() {
           >
             ورود
           </Button>
+          {import.meta.env.VITE_DEMO && (
+            <div className="login__demo">
+              <span className="hint">نسخهٔ نمایشی — ورود با یکی از نقش‌ها:</span>
+              <div className="login__roles">
+                {DEMO_LOGINS.map(([user, label]) => (
+                  <Button
+                    key={user}
+                    size="s"
+                    disabled={busy}
+                    onClick={() => {
+                      setUsername(user);
+                      setPassword(DEMO_PASSWORD);
+                      void submit({ username: user, password: DEMO_PASSWORD });
+                    }}
+                  >
+                    {label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
           {isDesktop && !editingServer && (
             <Button variant="ghost" size="s" onClick={() => setEditingServer(true)}>
               تغییر سرور

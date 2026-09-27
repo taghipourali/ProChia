@@ -1,5 +1,5 @@
 import { lazy, Suspense, type ComponentType } from 'react';
-import { createBrowserRouter } from 'react-router';
+import { createBrowserRouter, createHashRouter } from 'react-router';
 import { Spinner } from '@prochia/ui';
 import { Layout } from './components/Layout';
 import { MenuPage } from './pages/MenuPage';
@@ -22,7 +22,10 @@ function page(load: () => Promise<Record<string, ComponentType>>, name: string) 
   );
 }
 
-export const router = createBrowserRouter([
+// The static demo is served from plain files, so its routes live in the URL hash.
+const createRouter = import.meta.env.VITE_DEMO ? createHashRouter : createBrowserRouter;
+
+export const router = createRouter([
   {
     element: <Layout />,
     children: [

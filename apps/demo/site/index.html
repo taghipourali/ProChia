@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f7f7f2" />
+    <meta name="robots" content="noindex" />
+    <title>پروچیا — نسخهٔ نمایشی</title>
+    <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <header class="top">
+      <a class="brand" href="./">
+        <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true">
+          <rect width="32" height="32" rx="7" fill="#17603a" />
+          <circle cx="11" cy="20" r="3" fill="#fff" />
+          <circle cx="19" cy="14" r="3" fill="#fff" />
+          <circle cx="22.5" cy="22.5" r="2.2" fill="#dcf26a" />
+        </svg>
+        <span>پروچیا</span>
+        <em>نسخهٔ نمایشی</em>
+      </a>
+      <nav class="top__links">
+        <a href="./app/" target="_blank" rel="noopener">اپ اعضا در صفحهٔ جدا</a>
+        <a href="./panel/" target="_blank" rel="noopener">پنل کارکنان در صفحهٔ جدا</a>
+        <button type="button" class="reset" data-reset>بازنشانی داده‌ها</button>
+      </nav>
+    </header>
+
+    <main>
+      <section class="intro">
+        <h1>
+          سفارش از باشگاه، آماده‌سازی در رستوران و کافه،
+          <br />
+          کم‌شدن خودکار از انبار — همه زنده.
+        </h1>
+        <p>
+          این صفحه نسخهٔ کامل و واقعی پلتفرم است که داخل همین مرورگر اجرا می‌شود؛ سه هفته سابقهٔ
+          نمونه دارد و هر کاری کنید فقط در مرورگر خودتان ذخیره می‌شود.
+          <span class="wide-only"
+            >در گوشی سمت راست سفارش بدهید و همان لحظه در پنل کنارش ببینید.</span
+          >
+        </p>
+      </section>
+
+      <section class="stage" aria-label="اپ اعضا و پنل کارکنان">
+        <figure class="phone">
+          <figcaption>اپ اعضا · موبایل</figcaption>
+          <div class="phone__frame">
+            <iframe title="اپ اعضای پروچیا" data-src="./app/"></iframe>
+          </div>
+        </figure>
+        <figure class="desk">
+          <figcaption>
+            پنل کارکنان · رستوران، کافه، انبار و مدیریت
+            <span>نسخهٔ ویندوزی همین پنل است</span>
+          </figcaption>
+          <div class="desk__frame" data-desk>
+            <iframe title="پنل کارکنان پروچیا" data-src="./panel/"></iframe>
+          </div>
+        </figure>
+      </section>
+
+      <section class="open-cards" aria-label="باز کردن نسخهٔ نمایشی">
+        <a href="./app/" class="open-card">
+          <strong>اپ اعضا</strong>
+          <span>منوی QR، ارزش غذایی، سفارش و پیش‌سفارش، کیف پول، بسته‌ها</span>
+        </a>
+        <a href="./panel/" class="open-card">
+          <strong>پنل کارکنان</strong>
+          <span>برای تجربهٔ بهتر روی کامپیوتر باز کنید</span>
+        </a>
+      </section>
+
+      <section class="guide">
+        <div>
+          <h2>یک دور کامل در پنج قدم</h2>
+          <ol class="steps">
+            <li>در اپ اعضا با <b>هر شماره‌ای</b> وارد شوید؛ کد تأیید خودکار پر می‌شود.</li>
+            <li>پروفایل سلامت را کامل کنید تا هدف روزانه و پیشنهادهای شخصی ظاهر شوند.</li>
+            <li>یک غذا و یک نوشیدنی سفارش دهید — با درگاه آزمایشی، کیف پول یا پرداخت در صندوق.</li>
+            <li>
+              در پنل با نقش <b>رستوران</b> سفارش را تأیید کنید. مواد اولیه طبق دستور پخت از انبار کم
+              می‌شود و تازه آن‌وقت نوشیدنی به صف <b>کافه</b> می‌رود.
+            </li>
+            <li>
+              «شروع» و «آماده» را بزنید؛ وضعیت در اپ عضو زنده عوض می‌شود. بعد با نقش
+              <b>انبار</b> موجودی لحظه‌ای و با نقش <b>مالک</b> گزارش‌ها را ببینید.
+            </li>
+          </ol>
+        </div>
+        <aside class="creds">
+          <h2>ورودها</h2>
+          <dl>
+            <dt>کارکنان</dt>
+            <dd>
+              در صفحهٔ ورود پنل یکی از نقش‌ها را بزنید.
+              <br />
+              نام‌های کاربری:
+              <span class="ltr">owner · manager · kitchen · barista · storage · cashier</span>
+              <br />
+              رمز همه: <span class="ltr">prochia1234</span>
+            </dd>
+            <dt>اعضا</dt>
+            <dd>
+              هر شماره‌ای، یا <span class="ltr">09121111111</span> — عضو VIP با پلن کات و سابقهٔ
+              سفارش.
+            </dd>
+            <dt>پرداخت</dt>
+            <dd>درگاه آزمایشی است؛ پولی جابه‌جا نمی‌شود.</dd>
+          </dl>
+        </aside>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <span>پروچیا — تغذیه ورزشی باشگاه</span>
+      <span>لوگو، عکس غذاها و منو موقت‌اند و جایگزین می‌شوند.</span>
+    </footer>
+
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

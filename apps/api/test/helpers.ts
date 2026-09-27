@@ -1,4 +1,9 @@
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { PGlite, types } from '@electric-sql/pglite';
 import { eq, sql } from 'drizzle-orm';
+import { drizzle } from 'drizzle-orm/pglite';
+import { migrate } from 'drizzle-orm/pglite/migrator';
 import pg from 'pg';
 import type { Unit } from '@prochia/shared';
 import { loadConfig } from '../src/config';
@@ -17,8 +22,30 @@ import { FakeGateway } from '../src/modules/payments/gateways';
 export const TEST_DB =
   process.env.TEST_DATABASE_URL ?? 'postgres://prochia:prochia@localhost:5432/prochia_test';
 
+/**
+ * `TEST_DB_DRIVER=pglite` runs the suite on in-process PGlite instead of a Postgres server — the
+ * engine the static demo uses, so this also proves the services work there.
+ */
+const USE_PGLITE = process.env.TEST_DB_DRIVER === 'pglite';
+let pglite: PGlite | undefined;
+const pgliteDb = () => {
+  pglite ??= new PGlite({
+    parsers: { [types.INT8]: (v: string) => Number(v), [types.NUMERIC]: (v: string) => Number(v) },
+  });
+  return drizzle(pglite, { schema: s, casing: 'snake_case' });
+};
+
 /** Fresh schema for each test file. */
 export async function resetDatabase() {
+  if (USE_PGLITE) {
+    const db = pgliteDb();
+    await pglite!.exec(
+      'drop schema if exists public cascade; drop schema if exists drizzle cascade; create schema public;',
+    );
+    const here = path.dirname(fileURLToPath(import.meta.url));
+    await migrate(db, { migrationsFolder: path.resolve(here, '../drizzle') });
+    return;
+  }
   const client = new pg.Client({ connectionString: TEST_DB });
   await client.connect();
   await client.query(
@@ -43,7 +70,12 @@ export function createTestContext(env: Record<string, string> = {}): TestContext
     DEV_ECHO_OTP: 'true',
     ...env,
   });
-  const { db, pool } = createDb(TEST_DB);
+  const { db, close } = USE_PGLITE
+    ? { db: pgliteDb() as unknown as Db, close: async () => {} }
+    : (() => {
+        const { db, pool } = createDb(TEST_DB);
+        return { db, close: () => pool.end() };
+      })();
   const clock = { now: new Date('2026-09-27T09:00:00Z') }; // 12:30 in Tehran
   const smsLog = new ConsoleSmsProvider(() => {});
   const fakeGateway = new FakeGateway();
@@ -57,7 +89,7 @@ export function createTestContext(env: Record<string, string> = {}): TestContext
     clock,
     smsLog,
     fakeGateway,
-    close: () => pool.end(),
+    close,
   };
 }
 

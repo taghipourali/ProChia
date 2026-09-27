@@ -1,5 +1,6 @@
 import type { MenuItemDto } from '@prochia/shared';
 import { formatNumber } from '@prochia/shared';
+import { assetUrl } from '../lib/api';
 
 /**
  * Until real photos exist, the thumbnail shows the item's headline number: protein for meals,
@@ -18,7 +19,7 @@ export function FoodThumb({
   if (item.imageUrl) {
     return (
       <div className={cls}>
-        <img src={item.imageUrl} alt="" loading="lazy" />
+        <img src={assetUrl(item.imageUrl)} alt="" loading="lazy" />
       </div>
     );
   }
