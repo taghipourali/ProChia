@@ -1,9 +1,5 @@
 # ProChia
 ---
-
-A multi-gym food platform for ProChia, a sports-nutrition restaurant and café that lives inside gyms.
-Persian, right-to-left and built for Iranian infrastructure (Zarinpal, Kavenegar, Jalali dates, toman).
-
 ## What is in the box
 
 | App               | Who uses it                                  | What it does                                                                                                                                   |
