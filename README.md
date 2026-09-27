@@ -1,10 +1,4 @@
-# ProChia · پروچیا
-
-پلتفرم رستوران و کافه ورزشی داخل باشگاه: منوی QR با ارزش غذایی کامل هر غذا، پیش‌سفارش قبل و حین تمرین،
-پیشنهاد غذا بر اساس پروفایل سلامت هر عضو، بسته‌های وعده و برنامه کات/حجم، کیف پول با هدیه شارژ، پرداخت اعتباری VIP،
-باشگاه مشتریان و پیامک؛ و در پشت صحنه، هماهنگی رستوران و کافه، انبار زنده که با هر سفارش خودکار کم می‌شود،
-فرآوری مواد اولیه و گزارش‌های مدیریتی. هر باشگاه روی زیردامنه خودش (`<gym>.prochia.ir`).
-
+# ProChia
 ---
 
 A multi-gym food platform for ProChia, a sports-nutrition restaurant and café that lives inside gyms.
@@ -67,7 +61,7 @@ TEST_DB_DRIVER=pglite pnpm --filter @prochia/api test   # the API suite without 
 
 ## Demo for clients
 
-`pnpm build:demo` builds `apps/demo/dist`: a landing page with the member app in a phone frame beside the staff panel, all working with no server. A service worker answers `/api` in the browser by running the unchanged API routes and services on [PGlite](https://pglite.dev) (Postgres compiled to WebAssembly), starting from the seed's three weeks of history moved to today. Orders placed in the member app reach the kitchen board live; everything a visitor does stays in their browser, and “بازنشانی داده‌ها” restores the sample data.
+`pnpm build:demo` builds `apps/demo/dist`: a landing page with the member app in a phone frame beside the staff panel, all working with no server. A service worker answers `/api` in the browser by running the unchanged API routes and services on [PGlite](https://pglite.dev) (Postgres compiled to WebAssembly), starting from the seed's three weeks of history moved to today. Orders placed in the member app reach the kitchen board live; everything a visitor does stays in their browser, and “restoring dataا” restores the sample data.
 
 The **Demo** GitHub Action publishes it to GitHub Pages on every push to the default branch (one-time: Settings → Pages → Source: GitHub Actions). Serve `dist/` from any static host to show it elsewhere.
 
