@@ -5,3 +5,5 @@ export * from './nutrition';
 export * from './schemas';
 export * from './permissions';
 export * from './staff-schemas';
+export * from './dto';
+export * from './hours';

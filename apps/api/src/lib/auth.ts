@@ -16,8 +16,8 @@ export const MEMBER_COOKIE = 'pc_session';
 const branchCache = new WeakMap<FastifyRequest, Promise<Branch | null>>();
 
 /**
- * The branch a request is for: `X-Branch` header, then the subdomain of the Host, then the
- * configured default (local development without subdomains).
+ * The branch a request is for: `X-Branch` header (or `?branch=`), then the subdomain of the Host,
+ * then the configured default (local development without subdomains).
  */
 export function resolveBranch(ctx: AppContext, req: FastifyRequest): Promise<Branch | null> {
   let cached = branchCache.get(req);
@@ -36,6 +36,9 @@ export function resolveBranch(ctx: AppContext, req: FastifyRequest): Promise<Bra
 function branchSlugFromRequest(ctx: AppContext, req: FastifyRequest): string | undefined {
   const header = req.headers['x-branch'];
   if (typeof header === 'string' && header) return header.toLowerCase();
+  // EventSource cannot send headers, so streams may name the branch in the query string.
+  const query = (req.query as Record<string, unknown> | undefined)?.branch;
+  if (typeof query === 'string' && query) return query.toLowerCase();
   const host = (req.headers['x-forwarded-host'] as string | undefined) ?? req.headers.host ?? '';
   const hostname = host.split(':')[0]!.toLowerCase();
   const suffix = `.${ctx.config.ROOT_DOMAIN}`;
