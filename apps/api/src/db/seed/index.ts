@@ -459,18 +459,16 @@ async function main() {
     ])
     .returning();
 
-  await db
-    .insert(s.spots)
-    .values([
-      ...[1, 2, 3, 4, 5, 6].map((n) => ({
-        branchId: b.id,
-        code: `T${n}DEMO`,
-        label: `میز ${n}`,
-        stationId: restaurant!.id,
-      })),
-      { branchId: b.id, code: 'CAFEBAR', label: 'پیشخوان کافه', stationId: cafe!.id },
-      { branchId: b.id, code: 'GYMFLR', label: 'سالن بدنسازی', stationId: null },
-    ]);
+  await db.insert(s.spots).values([
+    ...[1, 2, 3, 4, 5, 6].map((n) => ({
+      branchId: b.id,
+      code: `T${n}DEMO`,
+      label: `میز ${n}`,
+      stationId: restaurant!.id,
+    })),
+    { branchId: b.id, code: 'CAFEBAR', label: 'پیشخوان کافه', stationId: cafe!.id },
+    { branchId: b.id, code: 'GYMFLR', label: 'سالن بدنسازی', stationId: null },
+  ]);
 
   // ─── Members ─────────────────────────────────────────────────────────────
   type P = Omit<HealthProfileInput, 'allergens' | 'dietPreferences'> &
@@ -865,37 +863,33 @@ async function main() {
         'checkout_start',
         'order_placed',
       ];
-      await db
-        .insert(s.events)
-        .values(
-          events.map((name, i) => ({
+      await db.insert(s.events).values(
+        events.map((name, i) => ({
+          branchId: b.id,
+          userId: m.user.id,
+          name,
+          createdAt: addMinutes(placedAt, i - events.length),
+        })),
+      );
+      if (rand() < 0.5) {
+        await db.insert(s.events).values([
+          {
             branchId: b.id,
             userId: m.user.id,
-            name,
-            createdAt: addMinutes(placedAt, i - events.length),
-          })),
-        );
-      if (rand() < 0.5) {
-        await db
-          .insert(s.events)
-          .values([
-            {
-              branchId: b.id,
-              userId: m.user.id,
-              name: 'suggestion_shown',
-              createdAt: addMinutes(placedAt, -6),
-            },
-            ...(rand() < 0.45
-              ? [
-                  {
-                    branchId: b.id,
-                    userId: m.user.id,
-                    name: 'suggestion_click',
-                    createdAt: addMinutes(placedAt, -5),
-                  },
-                ]
-              : []),
-          ]);
+            name: 'suggestion_shown',
+            createdAt: addMinutes(placedAt, -6),
+          },
+          ...(rand() < 0.45
+            ? [
+                {
+                  branchId: b.id,
+                  userId: m.user.id,
+                  name: 'suggestion_click',
+                  createdAt: addMinutes(placedAt, -5),
+                },
+              ]
+            : []),
+        ]);
       }
       // Some visits browse and leave without ordering — that is what the funnel is for.
       if (rand() < 0.35) {

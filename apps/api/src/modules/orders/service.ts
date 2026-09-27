@@ -340,16 +340,14 @@ export async function placeOrder(
     }
 
     const stationIds = [...new Set(pricing.lines.map((l) => l.stationId))];
-    await tx
-      .insert(stationTickets)
-      .values(
-        stationIds.map((stationId) => ({
-          orderId: order!.id,
-          branchId: branch.id,
-          stationId,
-          status: 'held' as const,
-        })),
-      );
+    await tx.insert(stationTickets).values(
+      stationIds.map((stationId) => ({
+        orderId: order!.id,
+        branchId: branch.id,
+        stationId,
+        status: 'held' as const,
+      })),
+    );
 
     let payment: typeof payments.$inferSelect | null = null;
     if (total > 0 && method !== 'postpaid' && method !== 'counter') {
@@ -908,14 +906,12 @@ export async function updateTicket(
         .update(orders)
         .set({ status: orderStatus, readyAt: orderStatus === 'ready' ? now : null, updatedAt: now })
         .where(eq(orders.id, order.id));
-      await tx
-        .insert(orderEvents)
-        .values({
-          orderId: order.id,
-          type: orderStatus,
-          actorKind: 'staff',
-          actorId: auth.staff.id,
-        });
+      await tx.insert(orderEvents).values({
+        orderId: order.id,
+        type: orderStatus,
+        actorKind: 'staff',
+        actorId: auth.staff.id,
+      });
       after.publish(auth.branch.id, {
         type: 'order.updated',
         orderId: order.id,

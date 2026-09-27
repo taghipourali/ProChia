@@ -13,8 +13,9 @@
     "db:seed": "pnpm --filter @prochia/api db:seed",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
-    "build": "pnpm -r build",
-    "format": "prettier --write ."
+    "build": "pnpm -r --filter '!@prochia/desktop' build",
+    "format": "prettier --write .",
+    "dev:desktop": "pnpm --filter @prochia/desktop dev"
   },
   "devDependencies": {
     "prettier": "^3.9.9",

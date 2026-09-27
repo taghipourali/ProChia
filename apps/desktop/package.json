@@ -1,0 +1,15 @@
+{
+  "name": "@prochia/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ProChia staff panel as a native Windows app (Tauri 2).",
+  "scripts": {
+    "tauri": "tauri",
+    "dev": "tauri dev",
+    "build": "tauri build",
+    "icons": "tauri icon src-tauri/icons/source.png"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.12.0"
+  }
+}

@@ -1,0 +1,84 @@
+# Rendered by the nginx image's envsubst step: ${ROOT_DOMAIN} comes from the environment.
+#
+#   <gym>.${ROOT_DOMAIN}   member site of that gym (menu, orders, account)
+#   panel.${ROOT_DOMAIN}   staff panel (also used by the Windows app)
+#   */api/*                the API, which reads the gym from the Host header
+#
+# TLS terminates here or at a front proxy. A wildcard certificate (*.${ROOT_DOMAIN}) covers every
+# gym; see docs/deployment.md.
+
+upstream prochia_api {
+  server api:4000;
+  keepalive 32;
+}
+
+# Shared API proxy settings, included by both servers.
+# Server-sent events (live orders) must not be buffered.
+proxy_http_version 1.1;
+proxy_set_header Connection "";
+proxy_set_header Host $host;
+proxy_set_header X-Forwarded-Host $host;
+proxy_set_header X-Forwarded-Proto $scheme;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+server {
+  listen 80;
+  server_name panel.${ROOT_DOMAIN};
+  root /srv/panel;
+  client_max_body_size 8m;
+
+  location /api/ {
+    proxy_pass http://prochia_api;
+    proxy_buffering off;
+    proxy_read_timeout 1h;
+  }
+
+  location /uploads/ {
+    alias /srv/uploads/;
+    expires 30d;
+    add_header Cache-Control "public, immutable";
+  }
+
+  location /assets/ {
+    expires 1y;
+    add_header Cache-Control "public, immutable";
+  }
+
+  location / {
+    try_files $uri /index.html;
+    add_header Cache-Control "no-cache";
+  }
+}
+
+server {
+  listen 80 default_server;
+  server_name ~^(?<gym>[a-z0-9-]+)\.${ROOT_DOMAIN}$;
+  root /srv/web;
+  client_max_body_size 2m;
+
+  gzip on;
+  gzip_types text/css application/javascript application/json image/svg+xml;
+
+  location /api/ {
+    proxy_pass http://prochia_api;
+    proxy_buffering off;
+    proxy_read_timeout 1h;
+  }
+
+  location /uploads/ {
+    alias /srv/uploads/;
+    expires 30d;
+    add_header Cache-Control "public, immutable";
+  }
+
+  location /assets/ {
+    expires 1y;
+    add_header Cache-Control "public, immutable";
+  }
+
+  # Client-side routes (/cart, /orders/…, /t/<table>) all serve the app shell.
+  location / {
+    try_files $uri /index.html;
+    add_header Cache-Control "no-cache";
+  }
+}

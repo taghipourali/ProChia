@@ -149,16 +149,14 @@ export async function runProduction(
         note: input.note ?? null,
       })
       .returning();
-    await tx
-      .insert(productionRunInputs)
-      .values(
-        inputs.map((i) => ({
-          runId: run!.id,
-          ingredientId: i.ingredientId,
-          quantity: i.quantity,
-          unitCost: cost.get(i.ingredientId) ?? 0,
-        })),
-      );
+    await tx.insert(productionRunInputs).values(
+      inputs.map((i) => ({
+        runId: run!.id,
+        ingredientId: i.ingredientId,
+        quantity: i.quantity,
+        unitCost: cost.get(i.ingredientId) ?? 0,
+      })),
+    );
     const changed = await applyMovements(tx, branchId, [
       ...inputs.map((i) => ({
         ingredientId: i.ingredientId,

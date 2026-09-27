@@ -1,0 +1,47 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "ProChia Panel",
+  "version": "0.1.0",
+  "identifier": "ir.prochia.panel",
+  "build": {
+    "frontendDist": "../../panel/dist",
+    "devUrl": "http://localhost:5174",
+    "beforeDevCommand": "pnpm --filter @prochia/panel dev",
+    "beforeBuildCommand": "pnpm --filter @prochia/panel build"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "پنل پروچیا",
+        "width": 1440,
+        "height": 900,
+        "minWidth": 1024,
+        "minHeight": 680,
+        "maximized": true,
+        "center": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis", "msi"],
+    "publisher": "ProChia",
+    "shortDescription": "پنل رستوران و کافه پروچیا",
+    "category": "Business",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.ico",
+      "icons/icon.png"
+    ],
+    "windows": {
+      "webviewInstallMode": { "type": "embedBootstrapper" },
+      "nsis": { "installMode": "perMachine" }
+    }
+  }
+}

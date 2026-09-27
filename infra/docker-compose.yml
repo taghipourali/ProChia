@@ -1,0 +1,70 @@
+# ProChia production stack: Postgres, the API (with its scheduler) and nginx serving both apps.
+#   cp infra/.env.example infra/.env   # then fill it in
+#   docker compose -f infra/docker-compose.yml --env-file infra/.env up -d --build
+#
+# Docker Hub is not reachable from Iranian servers; set IMAGE_REGISTRY in .env to a mirror
+# (e.g. docker.arvancloud.ir) — every image below is pulled through it.
+
+services:
+  db:
+    image: ${IMAGE_REGISTRY:-docker.io}/library/postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: prochia
+      POSTGRES_USER: prochia
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U prochia']
+      interval: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ..
+      dockerfile: infra/docker/api.Dockerfile
+      args:
+        NODE_IMAGE: ${IMAGE_REGISTRY:-docker.io}/library/node:22-alpine
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgres://prochia:${DB_PASSWORD}@db:5432/prochia
+      ROOT_DOMAIN: ${ROOT_DOMAIN:?set ROOT_DOMAIN}
+      APP_SECRET: ${APP_SECRET:?set APP_SECRET}
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      CORS_ORIGINS: https://panel.${ROOT_DOMAIN}
+      SMS_PROVIDER: ${SMS_PROVIDER:-kavenegar}
+      KAVENEGAR_API_KEY: ${KAVENEGAR_API_KEY:-}
+      KAVENEGAR_SENDER: ${KAVENEGAR_SENDER:-}
+      KAVENEGAR_OTP_TEMPLATE: ${KAVENEGAR_OTP_TEMPLATE:-}
+      PAYMENT_GATEWAY: ${PAYMENT_GATEWAY:-zarinpal}
+      ZARINPAL_MERCHANT_ID: ${ZARINPAL_MERCHANT_ID:-}
+      ZARINPAL_SANDBOX: ${ZARINPAL_SANDBOX:-false}
+      UPLOAD_DIR: /app/uploads
+    volumes:
+      - uploads:/app/uploads
+
+  web:
+    build:
+      context: ..
+      dockerfile: infra/docker/web.Dockerfile
+      args:
+        NODE_IMAGE: ${IMAGE_REGISTRY:-docker.io}/library/node:22-alpine
+        NGINX_IMAGE: ${IMAGE_REGISTRY:-docker.io}/library/nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      ROOT_DOMAIN: ${ROOT_DOMAIN}
+    ports:
+      - '80:80'
+    volumes:
+      - uploads:/srv/uploads:ro
+
+volumes:
+  pgdata:
+  uploads:

@@ -257,11 +257,13 @@ function PurchaseSheet({
         />
         {method === 'wallet' && walletBalance < plan.price && (
           <div className="notice notice--warning">
-            موجودی کافی نیست.{' '}
-            <Link to="/wallet">
-              <b>شارژ کیف پول</b>
-            </Link>{' '}
-            با هدیه شارژ، بسته ارزان‌تر هم می‌شود.
+            <div>
+              موجودی کافی نیست.{' '}
+              <Link to="/wallet">
+                <b>شارژ کیف پول</b>
+              </Link>{' '}
+              با هدیه شارژ، بسته ارزان‌تر هم می‌شود.
+            </div>
           </div>
         )}
       </div>
