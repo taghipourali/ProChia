@@ -1,8 +1,10 @@
+import { useEffect } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
+import { toFaDigits } from '@prochia/shared';
 import { Icon, Money, Wordmark, type IconName } from '@prochia/ui';
 import { useCart } from '../lib/cart';
 import { useBranch, useMember } from '../lib/queries';
-import { useCartTotal } from './useCartTotal';
+import { useCartTotal, useItemIndex } from './useCartTotal';
 
 const TABS: { to: string; label: string; icon: IconName; end?: boolean }[] = [
   { to: '/', label: 'منو', icon: 'menu', end: true },
@@ -16,7 +18,14 @@ export function Layout() {
   const { user } = useMember();
   const cart = useCart();
   const total = useCartTotal();
+  const items = useItemIndex();
   const location = useLocation();
+
+  // Drop cart lines for items that have left the menu since they were added.
+  useEffect(() => {
+    if (!items.size) return;
+    for (const line of cart.lines) if (!items.has(line.itemId)) cart.setQuantity(line.key, 0);
+  }, [items, cart]);
   const navigate = useNavigate();
   const showCartBar = cart.count > 0 && location.pathname !== '/cart';
 
@@ -47,7 +56,7 @@ export function Layout() {
 
       {showCartBar && (
         <button type="button" className="cart-bar" onClick={() => navigate('/cart')}>
-          <span className="cart-bar__count num">{cart.count.toLocaleString('fa-IR')}</span>
+          <span className="cart-bar__count num">{toFaDigits(cart.count)}</span>
           <span>مشاهده سبد و ثبت سفارش</span>
           <span className="cart-bar__total">{total !== null && <Money amount={total} />}</span>
         </button>

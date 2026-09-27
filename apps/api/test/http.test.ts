@@ -205,4 +205,40 @@ describe('member HTTP flow', () => {
     });
     expect(bad.statusCode).toBe(401);
   });
+
+  it('approves waiting sign-ups when reception imports the gym member list', async () => {
+    ctx.clock.now = new Date(ctx.clock.now.getTime() + 5 * 60_000);
+    const { body } = await login('09357778899');
+    expect(body.membershipStatus).toBe('pending');
+
+    const staffLogin = await app.inject({
+      method: 'POST',
+      url: '/api/v1/staff/auth/login',
+      payload: { username: 'cashier', password: 'password123' },
+    });
+    const auth = { authorization: `Bearer ${staffLogin.json().token}` };
+    const imported = await app.inject({
+      method: 'POST',
+      url: '/api/v1/staff/whitelist',
+      headers: auth,
+      payload: { entries: [{ phone: '۰۹۳۵۷۷۷۸۸۹۹', gymMemberCode: 'G-77' }] },
+    });
+    expect(imported.statusCode).toBe(200);
+
+    const members = await app.inject({
+      method: 'GET',
+      url: '/api/v1/staff/members?q=09357778899',
+      headers: auth,
+    });
+    expect(members.json()[0]).toMatchObject({ status: 'active', gymMemberCode: 'G-77' });
+
+    // Cashiers may approve members but not grant VIP credit.
+    const vip = await app.inject({
+      method: 'PATCH',
+      url: `/api/v1/staff/members/${members.json()[0].id}`,
+      headers: auth,
+      payload: { isVip: true, creditLimit: 1_000_000 },
+    });
+    expect(vip.statusCode).toBe(403);
+  });
 });

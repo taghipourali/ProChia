@@ -3,11 +3,13 @@ import type { Allergen, ItemTag, Nutrition } from '@prochia/shared';
 import type { AppContext } from '../../context';
 import {
   categories,
+  ingredients,
   menuItemModifierGroups,
   menuItems,
   modifierGroups,
   modifierOptions,
   recipeLines,
+  stations,
 } from '../../db/schema';
 import type { Branch } from '../../lib/auth';
 import { badRequest, notFound } from '../../lib/errors';
@@ -151,11 +153,20 @@ export interface MenuItemInput {
   groupIds: string[];
 }
 
+async function assertStation(ctx: AppContext, branchId: string, stationId: string) {
+  const [row] = await ctx.db
+    .select({ id: stations.id })
+    .from(stations)
+    .where(and(eq(stations.id, stationId), eq(stations.branchId, branchId)));
+  if (!row) throw badRequest('invalid_station', 'ایستگاه معتبر نیست');
+}
+
 async function assertBranchRefs(
   ctx: AppContext,
   branchId: string,
-  input: Pick<MenuItemInput, 'categoryId' | 'groupIds'>,
+  input: Pick<MenuItemInput, 'categoryId' | 'groupIds' | 'stationId'>,
 ) {
+  await assertStation(ctx, branchId, input.stationId);
   const [cat] = await ctx.db
     .select({ id: categories.id })
     .from(categories)
@@ -265,6 +276,15 @@ export async function setRecipe(
   const ingredientIds = [...new Set(lines.map((l) => l.ingredientId))];
   if (ingredientIds.length !== lines.length)
     throw badRequest('duplicate_ingredient', 'هر ماده فقط یک بار در دستور پخت بیاید');
+  if (ingredientIds.length) {
+    const owned = await ctx.db
+      .select({ id: ingredients.id })
+      .from(ingredients)
+      .where(and(eq(ingredients.branchId, branch.id), inArray(ingredients.id, ingredientIds)));
+    if (owned.length !== ingredientIds.length) {
+      throw badRequest('invalid_ingredient', 'ماده انتخاب‌شده متعلق به این شعبه نیست');
+    }
+  }
   await ctx.db.transaction(async (tx) => {
     if ('menuItemId' in owner) {
       const [item] = await tx
@@ -320,6 +340,7 @@ export async function saveCategory(
   id: string | null,
   input: { name: string; stationId: string; sort: number; isActive: boolean },
 ) {
+  await assertStation(ctx, branch.id, input.stationId);
   if (id) {
     const [row] = await ctx.db
       .update(categories)
