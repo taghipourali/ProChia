@@ -1,7 +1,7 @@
 # Rendered by the nginx image's envsubst step: ${ROOT_DOMAIN} comes from the environment.
 #
 #   <gym>.${ROOT_DOMAIN}   member site of that gym (menu, orders, account)
-#   panel.${ROOT_DOMAIN}   staff panel (also used by the Windows app)
+#   panel.${ROOT_DOMAIN}   API for the staff Windows app, and its download page
 #   */api/*                the API, which reads the gym from the Host header
 #
 # TLS terminates here or at a front proxy. A wildcard certificate (*.${ROOT_DOMAIN}) covers every
@@ -21,10 +21,12 @@ proxy_set_header X-Forwarded-Host $host;
 proxy_set_header X-Forwarded-Proto $scheme;
 proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 
+# Staff work in the Windows app, which ships the panel itself and only calls /api and /uploads here.
+# A browser gets the page for downloading the app.
 server {
   listen 80;
   server_name panel.${ROOT_DOMAIN};
-  root /srv/panel;
+  root /srv/panel-home;
   client_max_body_size 8m;
 
   location /api/ {
@@ -39,9 +41,9 @@ server {
     add_header Cache-Control "public, immutable";
   }
 
-  location /assets/ {
-    expires 1y;
-    add_header Cache-Control "public, immutable";
+  location /downloads/ {
+    alias /srv/downloads/;
+    add_header Cache-Control "no-cache";
   }
 
   location / {

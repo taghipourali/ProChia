@@ -53,7 +53,7 @@ TEST_DB_DRIVER=pglite pnpm --filter @prochia/api test   # the API suite without 
 
 ## Windows app
 
-`pnpm dev:desktop` runs it locally on Windows. Installers (`.exe`, `.msi`) are built by the **Windows app** GitHub Action (run it from the Actions tab or push a `desktop-v*` tag). On first launch the app asks for the server address, e.g. `https://panel.prochia.ir`.
+Staff (restaurant, café, storage, cashier, managers) use the panel as a Windows app; members use the website. `pnpm dev:desktop` runs it locally on Windows. The installer includes the WebView2 runtime, so it installs without internet access to Microsoft, and production servers hand it out at `https://panel.<domain>` instead of the browser panel. On first launch the app asks for that address.
 
 ## Demo for clients
 
@@ -63,7 +63,7 @@ The **Demo** GitHub Action publishes it to GitHub Pages on every push to the def
 
 ## Deploying
 
-Docker Compose stack in `infra/` (Postgres, API, nginx serving both apps with wildcard subdomains). See [docs/deployment.md](docs/deployment.md) for DNS, TLS, SMS and payment-gateway setup in Iran.
+Built to keep working when Iran's international internet is restricted: host on an Iranian VPS and install from a **release bundle** (prebuilt images, compose file, install script and the Windows installer), so the server never needs Docker Hub, npm or GitHub. See [docs/deployment.md](docs/deployment.md) for the bundle, DNS, TLS, SMS and payment-gateway setup.
 
 ## Replacing placeholders
 

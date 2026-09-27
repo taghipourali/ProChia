@@ -1,0 +1,18 @@
+# Builds the images from source instead of loading them from a release bundle. The server then
+# needs npm and a Docker registry: Docker Hub is blocked in Iran, so set IMAGE_REGISTRY in .env to a
+# mirror (e.g. docker.arvancloud.ir). Use together with docker-compose.yml.
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: infra/docker/api.Dockerfile
+      args:
+        NODE_IMAGE: ${IMAGE_REGISTRY:-docker.io}/library/node:22-alpine
+
+  web:
+    build:
+      context: ..
+      dockerfile: infra/docker/web.Dockerfile
+      args:
+        NODE_IMAGE: ${IMAGE_REGISTRY:-docker.io}/library/node:22-alpine
+        NGINX_IMAGE: ${IMAGE_REGISTRY:-docker.io}/library/nginx:1.27-alpine

@@ -1,0 +1,74 @@
+name: Release
+
+# Builds a bundle that installs or updates ProChia on a server in Iran without reaching foreign
+# services: prebuilt Docker images, the compose file, an install script, and the Windows app
+# installer, which staff then download from the server itself. Push a tag like v0.1.0 to publish
+# it as a GitHub release, or run it from the Actions tab to get it as a run artifact.
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    uses: ./.github/workflows/desktop.yml
+
+  bundle:
+    needs: windows
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: prochia-panel-windows
+          path: installer
+      - name: Build images
+        run: |
+          docker build -f infra/docker/api.Dockerfile -t prochia/api:latest .
+          docker build -f infra/docker/web.Dockerfile -t prochia/web:latest .
+          docker pull postgres:16-alpine
+      - name: Assemble bundle
+        run: |
+          if [ "$GITHUB_REF_TYPE" = tag ]; then version="$GITHUB_REF_NAME"; else version="$(git rev-parse --short HEAD)"; fi
+          dir="prochia-$version"
+          mkdir -p "$dir/downloads"
+          docker save prochia/api:latest prochia/web:latest postgres:16-alpine | gzip > "$dir/images.tar.gz"
+          cp infra/docker-compose.yml infra/release/install.sh infra/release/README.md "$dir/"
+          cp infra/.env.example "$dir/.env.example"
+          cp installer/*.exe "$dir/downloads/ProChia-Panel-Setup.exe"
+          tar cf "$dir.tar" "$dir"
+          ls -lh "$dir" "$dir/downloads" "$dir.tar"
+          echo "BUNDLE=$dir" >> "$GITHUB_ENV"
+      # Install the bundle exactly as a server would, then go through nginx like browsers and the
+      # Windows app do.
+      - name: Smoke test
+        working-directory: ${{ env.BUNDLE }}
+        run: |
+          sed -e 's/^ROOT_DOMAIN=.*/ROOT_DOMAIN=prochia.test/' -e 's/change-me[a-z-]*/smoke0123456789abcdef0123456789/' \
+            -e 's/^SMS_PROVIDER=.*/SMS_PROVIDER=console/' -e 's/^ZARINPAL_MERCHANT_ID=.*/ZARINPAL_MERCHANT_ID=smoke/' \
+            .env.example > .env
+          ./install.sh
+          for i in $(seq 1 30); do
+            curl -sf -H 'Host: panel.prochia.test' localhost/api/health && break
+            sleep 2
+          done
+          curl -sf -H 'Host: panel.prochia.test' localhost/ | grep -q 'ProChia-Panel-Setup.exe'
+          curl -sfI -H 'Host: panel.prochia.test' localhost/downloads/ProChia-Panel-Setup.exe
+          curl -sf -H 'Host: demo.prochia.test' localhost/ | grep -q 'id="root"'
+          curl -s -H 'Host: demo.prochia.test' localhost/api/v1/branch | grep -q '"not_found"'
+          docker compose down -v
+          rm .env
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.BUNDLE }}
+          path: ${{ env.BUNDLE }}.tar
+          compression-level: 0
+      - name: Publish release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" "$BUNDLE.tar" --title "ProChia $GITHUB_REF_NAME" --notes-file infra/release/README.md

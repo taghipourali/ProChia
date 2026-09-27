@@ -28,7 +28,7 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["nsis", "msi"],
+    "targets": ["nsis"],
     "publisher": "ProChia",
     "shortDescription": "پنل رستوران و کافه پروچیا",
     "category": "Business",
@@ -40,7 +40,7 @@
       "icons/icon.png"
     ],
     "windows": {
-      "webviewInstallMode": { "type": "embedBootstrapper" },
+      "webviewInstallMode": { "type": "offlineInstaller" },
       "nsis": { "installMode": "perMachine" }
     }
   }

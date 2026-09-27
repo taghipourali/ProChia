@@ -1,9 +1,10 @@
-# ProChia production stack: Postgres, the API (with its scheduler) and nginx serving both apps.
-#   cp infra/.env.example infra/.env   # then fill it in
-#   docker compose -f infra/docker-compose.yml --env-file infra/.env up -d --build
+# ProChia production stack: Postgres, the API (with its scheduler) and nginx serving the member site,
+# the API, and the Windows app download for staff.
 #
-# Docker Hub is not reachable from Iranian servers; set IMAGE_REGISTRY in .env to a mirror
-# (e.g. docker.arvancloud.ir) — every image below is pulled through it.
+# From a release bundle, which needs no foreign internet on the server: ./install.sh
+# From source, building the images on the server (see docker-compose.build.yml):
+#   docker compose -f infra/docker-compose.yml -f infra/docker-compose.build.yml \
+#     --env-file infra/.env up -d --build
 
 services:
   db:
@@ -21,11 +22,7 @@ services:
       retries: 10
 
   api:
-    build:
-      context: ..
-      dockerfile: infra/docker/api.Dockerfile
-      args:
-        NODE_IMAGE: ${IMAGE_REGISTRY:-docker.io}/library/node:22-alpine
+    image: prochia/api:latest
     restart: unless-stopped
     depends_on:
       db:
@@ -49,12 +46,7 @@ services:
       - uploads:/app/uploads
 
   web:
-    build:
-      context: ..
-      dockerfile: infra/docker/web.Dockerfile
-      args:
-        NODE_IMAGE: ${IMAGE_REGISTRY:-docker.io}/library/node:22-alpine
-        NGINX_IMAGE: ${IMAGE_REGISTRY:-docker.io}/library/nginx:1.27-alpine
+    image: prochia/web:latest
     restart: unless-stopped
     depends_on:
       - api
@@ -64,6 +56,8 @@ services:
       - '80:80'
     volumes:
       - uploads:/srv/uploads:ro
+      # The Windows installer staff download from panel.<domain> (put there by install.sh).
+      - ./downloads:/srv/downloads:ro
 
 volumes:
   pgdata:
